@@ -62,53 +62,7 @@ StringItem smsResult;
 		Display.getDisplay(this).setCurrent(form);
 
 	}
-	
-	public void processMessage(){
-		Message msg = null;
-		try{
-			msg = conn.receive();
-		} catch (Exception e){
-			System.out.println("processMessage.received " + e);
-		}
-		if(msg instanceof TextMessage){
-			TextMessage sms = (TextMessage) msg;
-			System.out.println(sms.getPayloadText());
-		}else if(msg instanceof BinaryMessage){
-			// TODO implement when a binary message is received
-		}else{
-			// TODO implement what happens when the message is not a TextMessage
-		}
-	}
-	
-	public void receiveSms(){
-		MessageConnection conn = (MessageConnection) Connector.open("sms://:50001");
-		
-		try {
-			conn.setMessageListener(
-				new MessageListener(){
-					public void processMessage(){
-						Message msg = null;
-						try{
-							msg = conn.receive();
-						} catch (Exception e){
-							System.out.println("processMessage.received " + e);
-						}
-						if(msg instanceof TextMessage){
-							TextMessage sms = (TextMessage) msg;
-							System.out.println(sms.getPayloadText());
-						}else if(msg instanceof BinaryMessage){
-							// TODO implement when a binary message is received
-						}else{
-							// TODO implement what happens when the message is not a TextMessage
-						}
-					}
-				}
-			);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+
 	
 	public boolean sendSms(String number, String message) {
 		boolean result = true;
@@ -143,4 +97,35 @@ StringItem smsResult;
 		smsResult.setText("RESULT:"+result);
 	}
 
+}
+
+class MessageProcessor implements Runnable{
+	Thread th = new Thread(this);
+	MessageConnection mc;
+	boolean done;
+	public void run() {
+		processMessage();	
+	}
+	
+	public void processMessage(){
+		Message msg = null;
+		
+		try{
+			msg = mc.receive();
+		}catch(Exception e){
+			System.out.println("processMessage.receive " + e);
+		}
+		
+		if(msg instanceof TextMessage){
+			TextMessage tmsg = (TextMessage)msg;
+			// ticker.setString(tmsg.getPaylodText());
+		}else if(msg instanceof BinaryMessage){
+			BinaryMessage bmsg = (BinaryMessage)msg;
+			byte[] data = bmsg.getPayloadData();
+			// TODO handle binary message.
+		}else{
+			// ignore
+		}
+	}
+	
 }
